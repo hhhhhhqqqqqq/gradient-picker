@@ -21,7 +21,6 @@
 
     componentName: 'MsRadioGroup',
 
-
     props: {
       value: {},
       size: String,

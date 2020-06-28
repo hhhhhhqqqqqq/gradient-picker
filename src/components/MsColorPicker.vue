@@ -5,8 +5,6 @@
       class="ms-color-picker__panel"
       style="position:relative;border:0;box-shadow:none"
       v-model="showPicker"
-      @pick="confirmValue"
-      @clear="clearValue"
       :color="color"
       :show-alpha="showAlpha"
       :showControl="false"
@@ -42,19 +40,30 @@ export default {
       showPanelColor: false
     };
   },
-  methods: {
-    confirmValue() {
-      this.$emit("input", this.color.value);
-      this.$emit("change", this.color.value);
-      this.showPicker = false;
-    },
-    clearValue() {
-      this.$emit("input", null);
-      this.$emit("change", null);
-      this.showPanelColor = false;
-      this.showPicker = false;
-      this.resetColor();
+  watch: {
+    color: {
+      handler(newVal) {
+        this.$emit("change", newVal.value);
+      },
+      deep: true
     }
+  },
+  methods: {
+    confirm(){
+      return this.color.value
+    }
+    // confirmValue() {
+    //   this.$emit("input", this.color.value);
+    //   this.$emit("change", this.color.value);
+    //   this.showPicker = false;
+    // },
+    // clearValue() {
+    //   this.$emit("input", null);
+    //   this.$emit("change", null);
+    //   this.showPanelColor = false;
+    //   this.showPicker = false;
+    //   this.resetColor();
+    // }
   }
 };
 </script>

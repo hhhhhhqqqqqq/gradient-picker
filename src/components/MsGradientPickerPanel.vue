@@ -27,7 +27,7 @@
             v-for="(item, index) in colorStopList"
             :key="index"
             class="gradientPicker_slider"
-            :style="{left:calPosition(item.offset), borderColor: item.color, boxShadow:item === currentStop ? '0 0 2px #000':'none'}"
+            :style="{left:calPosition(item.offset), borderColor: item.color, boxShadow:item === currentStop ? `0 0 2px ${item.color}`:'none'}"
             @mousedown.stop="currentEditorAndMove(item,$event)"
             @dblclick="showColorSelect"
             @click.stop
@@ -37,7 +37,7 @@
               :style="{background:item.color}"
             ></div>
             <div
-              style="position:absolute;width:100%;height:100%;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)"
+              class="panel_background"
             ></div>
           </div>
         </div>
@@ -76,14 +76,7 @@
             <span style="line-height:38px;">X轴：</span>
           </div>
           <div class="ms-col-18">
-            <ms-slider
-              v-model="cx"
-              :min="0"
-              :max="1"
-              :step="0.01"
-              show-input
-              input-size="mini"
-            ></ms-slider>
+            <ms-slider v-model="cx" :min="0" :max="1" :step="0.01" show-input input-size="mini"></ms-slider>
           </div>
         </div>
         <div class="ms-row clearfix" v-if="gradientType === 'radial'">
@@ -91,14 +84,7 @@
             <span style="line-height:38px;">Y轴：</span>
           </div>
           <div class="ms-col-18">
-            <ms-slider
-              v-model="cy"
-              :min="0"
-              :max="1"
-              :step="0.01"
-              show-input
-              input-size="mini"
-            ></ms-slider>
+            <ms-slider v-model="cy" :min="0" :max="1" :step="0.01" show-input input-size="mini"></ms-slider>
           </div>
         </div>
         <div class="ms-row clearfix" v-if="gradientType === 'linear'">
@@ -106,13 +92,7 @@
             <span style="line-height:38px;">角度：</span>
           </div>
           <div class="ms-col-18">
-            <ms-slider
-              v-model="angle"
-              :min="0"
-              :max="360"
-              show-input
-              input-size="mini"
-            ></ms-slider>
+            <ms-slider v-model="angle" :min="0" :max="360" show-input input-size="mini"></ms-slider>
           </div>
         </div>
       </div>
@@ -232,7 +212,6 @@ export default {
     if (width) {
       this.sliderWidth = width;
     }
-    this.registEvent();
   },
   methods: {
     registEvent() {
@@ -317,7 +296,57 @@ export default {
       this.pickerColor = item.color;
       this.apply_style();
     },
+    confirm: function() {
+      var gradien = this.get_style_value();
+      var linearGradient = "",
+        radialGradient = "";
+    var option = {};
+      if (this.colorStopList.length == 0) {
+        option = null
+        // this.$emit("input", null);
+        // this.$emit("change", null);
+      } else {
+        if (gradien instanceof Array) {
+          linearGradient = [
+            "-webkit-linear-gradient(" + gradien[0] + ")",
+            "-moz-linear-gradient(" + gradien[0] + ")",
+            "-ms-linear-gradient(" + gradien[0] + ")",
+            "-o-linear-gradient(" + gradien[0] + ")",
+            "linear-gradient(" + gradien[3] + ")"
+          ];
 
+          radialGradient = [
+            "-webkit-radial-gradient(" + gradien[1] + ")",
+            "-moz-radial-gradient(" + gradien[1] + ")",
+            "-ms-radial-gradient(" + gradien[1] + ")",
+            "-o-radial-gradient(" + gradien[1] + ")",
+            "radial-gradient(" + gradien[1] + ")"
+          ];
+          var option = {};
+          option.colorStops = $extend(true, [], this.colorStopList);
+          if (this.gradientType == "radial") {
+            option.type = "radial";
+            option.cx = this.cx;
+            option.cy = this.cy;
+            option.r = 0.5;
+            option.background = radialGradient;
+          } else {
+            option.type = "linear";
+            option.angle = this.angle;
+            option.background = linearGradient;
+          }
+          // this.$emit("input", option);
+          // this.$emit("change", option);
+          console.log("option", option);
+        } else {
+          // this.$emit("input", gradien);
+          // this.$emit("change", gradien);
+          console.log("gradien", gradien);
+          option = gradien
+        }
+      }
+      return option
+    },
     get_style_value: function() {
       var len = this.colorStopList.length;
       var ret = null;
@@ -333,12 +362,7 @@ export default {
             if (this.colorStopList[i].offset > 1) {
               this.colorStopList[i].offset = 1;
             }
-            style_str +=
-              suffix +
-              (this.colorStopList[i].color +
-                " " +
-                this.colorStopList[i].offset * 100 +
-                "%");
+            style_str += suffix + (this.colorStopList[i].color + " " +  this.colorStopList[i].offset * 100 + "%");
           }
           suffix = " , "; //add , from next iteration
         }
@@ -347,13 +371,7 @@ export default {
 
         ret[0] = this.angle + "deg , " + style_str; //add
         //position, type size, [color stoppers],radial
-        ret[1] =
-          this.cx * 100 +
-          "% " +
-          this.cy * 100 +
-          "% , closest-side " +
-          " , " +
-          style_str;
+        ret[1] = this.cx * 100 + "% " +  this.cy * 100 + "% , closest-side " + " , " + style_str;
         ret[2] = "0deg , " + style_str; //add
 
         ret[3] = 90 - this.angle + "deg , " + style_str; //add
@@ -489,6 +507,8 @@ export default {
       //   .spectrum("show");
     },
     currentEditorAndMove: function(item, e) {
+      
+      this.registEvent();
       console.log("object");
       this.currentStop = item;
       this.pickerColor = item.color;
@@ -624,7 +644,7 @@ export default {
     },
     changeOffset: function() {
       this.apply_style();
-    },
+    }
   }
 };
 </script>
@@ -670,7 +690,7 @@ export default {
   margin: 0 5px;
   /* width: calc(100% -12px); */
   height: 42px;
-  border: 1px solid #ccc;
+  /* border: 1px solid #ccc; */
   position: relative;
   box-sizing: content-box;
 }
@@ -721,10 +741,10 @@ export default {
   width: 10px;
   height: 10px;
   background: red;
-  border: 1px solid #d0d0d0;
+  /* border: 1px solid #d0d0d0; */
   display: inline-block;
 }
-.gradientPicker_slider:after{
+.gradientPicker_slider:after {
   position: absolute;
   top: -10px;
   left: 0;
@@ -733,7 +753,7 @@ export default {
   width: 0;
   height: 0;
   border: 5px solid #666;
-  border-color:inherit ;
+  border-color: inherit;
   border-top-color: transparent;
   border-left-color: transparent;
   border-right-color: transparent;
@@ -787,13 +807,6 @@ export default {
 .ms-col-18 {
   width: 75%;
   /* float: left; */
-}
-
-.setting_container >>> .el-slider__runway.show-input {
-  margin-right: 122px;
-}
-.setting_container >>> .el-input-number--mini {
-  width: 100px;
 }
 .clearfix:after {
   content: "020";

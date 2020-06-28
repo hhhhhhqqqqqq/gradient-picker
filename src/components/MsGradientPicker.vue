@@ -12,7 +12,7 @@
       >
         <i class="iconfont icon-jiantou"></i>
       </div>-->
-      <div class="gradientPicker_trigger"></div>
+      <div ref="trigger" class="gradientPicker_trigger"></div>
       <div class="blank-background"></div>
     </div>
     <!---->
@@ -36,18 +36,25 @@
         </div>
         <div class="ms-tabs__contents">
           <div v-show="currentTab === 'singer'">
-            <MsColorPicker v-model="pickColor" :show-alpha="showAlpha" :predefine="predefine"></MsColorPicker>
+            <MsColorPicker
+              ref="singer"
+              v-model="pickColor"
+              :show-alpha="showAlpha"
+              :predefine="predefine"
+              @change="change"
+            ></MsColorPicker>
           </div>
           <div v-show="currentTab === 'gradient'">
             <MsGradientPickerPanel
+              ref="gradient"
               @mouseover="hideTooltip"
               :style="{top:showPanelTop +'px', left:showPanelLeft +'px'}"
             ></MsGradientPickerPanel>
           </div>
         </div>
         <div class="confirm-btn">
-          <ms-button plain size="mini">清空</ms-button>
-          <ms-button type="primary" size="mini">确定</ms-button>
+          <ms-button plain size="mini" @click="clear">清空</ms-button>
+          <ms-button type="primary" size="mini" @click="confirm">确定</ms-button>
         </div>
       </div>
     </transition>
@@ -65,6 +72,10 @@ export default {
     MsGradientPickerPanel,
     MsColorPicker,
     MsButton
+  },
+  props: {
+    value: "",
+    colorFormat: ""
   },
   data() {
     return {
@@ -116,7 +127,29 @@ export default {
     },
     changeTab(tab) {
       this.currentTab = tab;
-    }
+    },
+    change(value) {
+      console.log("value", value);
+    },
+    confirm: function() {
+      let color;
+      if (this.currentTab === "gradient") {
+        color = this.$refs.gradient.confirm();
+      } else {
+        color = this.$refs.singer.confirm();
+      }
+      if (color instanceof Object) {
+        let back = color.background;
+        let background = back.map(item => {
+          return { background: item };
+        });
+        this.$refs.trigger.style.background = background;
+      } else {
+        this.$refs.trigger.style.background = color;
+      }
+      console.log(color);
+    },
+    clear() {}
   }
 };
 </script>

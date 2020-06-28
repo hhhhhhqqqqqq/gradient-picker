@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <MsGradientPicker class="p"></MsGradientPicker>
+    <MsGradientPicker class="p" @change="change" v-model="color"></MsGradientPicker>
   </div>
 </template>
 
@@ -11,6 +11,19 @@ export default {
   name: "App",
   components: {
     MsGradientPicker
+  },
+  methods:{
+    change(){}
+  },
+  data(){
+    return {
+      color:""
+    }
+  },
+  watch:{
+    color(){
+      console.log('this.color', this.color)
+    }
   }
 };
 </script>

@@ -31,14 +31,13 @@
             @mousedown.stop="currentEditorAndMove(item,$event)"
             @dblclick="showColorSelect"
             @click.stop
+            title="下拉删除"
           >
             <div
               style="position:absolute;width:100%;height:100%;z-index:2;"
               :style="{background:item.color}"
             ></div>
-            <div
-              class="panel_background"
-            ></div>
+            <div class="panel_background"></div>
           </div>
         </div>
       </div>
@@ -51,7 +50,12 @@
             <span style="line-height:28px;">颜色：</span>
           </div>
           <div class="ms-col-18">
-            <ColorPicker v-model="pickerColor" :predefine="colors" show-alpha @change="colorChange"></ColorPicker>
+            <ColorPicker
+              v-model="pickerColor"
+              :predefine="singerPredefine"
+              show-alpha
+              @change="colorChange"
+            ></ColorPicker>
             <input type="text" class="gradientPicker-color-selector" style="display: none;" />
           </div>
         </div>
@@ -96,15 +100,15 @@
           </div>
         </div>
       </div>
-      <div class="color_preview" ref="pp">
+      <div class="color_preview">
         <div class="gradientPicker_preview" :style="{'background': preview_color}"></div>
         <div class="preview_default_background"></div>
       </div>
     </div>
     <!-- 默认渐变色 -->
-    <div class="default-color">
+    <div class="default-color" v-if="predefine.length">
       <div
-        v-for="(item,index) in defaultColorList"
+        v-for="(item,index) in predefine"
         :key="index"
         @click="setdefaultColor(item)"
         class="color-item"
@@ -150,6 +154,14 @@ export default {
     MsSlider
   },
   props: {
+    predefine: {
+      type: Array,
+      default: () => []
+    },
+    singerPredefine: {
+      type: Array,
+      default: () => []
+    }
     // sliderWidth:{  // 滑块的长度
     //   type: Number,
     //   default: 300
@@ -157,7 +169,6 @@ export default {
   },
   data() {
     return {
-      defaultColorList: DefaultColor,
       selectedColorList: [],
       gradientType: "linear",
       reverse: true,
@@ -174,32 +185,20 @@ export default {
       colorStopList: [],
       currentStop: {},
       pickerColor: "",
-      colors: [
-        "#ccc",
-        "#f0f",
-        "#d0e0e3",
-        "#b4a7d6",
-        "#6fa8dc",
-        "#f1c232",
-        "#674ea7",
-        "#0b5394",
-        "#7f6000",
-        "#4c1130"
-      ],
       preview_color: ""
     };
   },
   watch: {
-    gradientType: function() {
+    gradientType() {
       this.apply_style();
     },
-    angle: function() {
+    angle() {
       this.apply_style();
     },
-    cx: function() {
+    cx() {
       this.apply_style();
     },
-    cy: function() {
+    cy() {
       this.apply_style();
     }
     // pickerColor(newV) {
@@ -244,7 +243,7 @@ export default {
       this.angle = 315;
     },
     // 反向
-    reverseOp: function() {
+    reverseOp() {
       if (this.colorStopList == null || this.colorStopList.length == 0) {
         return;
       }
@@ -296,15 +295,13 @@ export default {
       this.pickerColor = item.color;
       this.apply_style();
     },
-    confirm: function() {
+    confirm() {
       var gradien = this.get_style_value();
       var linearGradient = "",
         radialGradient = "";
-    var option = {};
+      var option = {};
       if (this.colorStopList.length == 0) {
-        option = null
-        // this.$emit("input", null);
-        // this.$emit("change", null);
+        option = null;
       } else {
         if (gradien instanceof Array) {
           linearGradient = [
@@ -342,12 +339,12 @@ export default {
           // this.$emit("input", gradien);
           // this.$emit("change", gradien);
           console.log("gradien", gradien);
-          option = gradien
+          option = gradien;
         }
       }
-      return option
+      return option;
     },
-    get_style_value: function() {
+    get_style_value() {
       var len = this.colorStopList.length;
       var ret = null;
       if (len === 1) {
@@ -362,7 +359,12 @@ export default {
             if (this.colorStopList[i].offset > 1) {
               this.colorStopList[i].offset = 1;
             }
-            style_str += suffix + (this.colorStopList[i].color + " " +  this.colorStopList[i].offset * 100 + "%");
+            style_str +=
+              suffix +
+              (this.colorStopList[i].color +
+                " " +
+                this.colorStopList[i].offset * 100 +
+                "%");
           }
           suffix = " , "; //add , from next iteration
         }
@@ -371,7 +373,13 @@ export default {
 
         ret[0] = this.angle + "deg , " + style_str; //add
         //position, type size, [color stoppers],radial
-        ret[1] = this.cx * 100 + "% " +  this.cy * 100 + "% , closest-side " + " , " + style_str;
+        ret[1] =
+          this.cx * 100 +
+          "% " +
+          this.cy * 100 +
+          "% , closest-side " +
+          " , " +
+          style_str;
         ret[2] = "0deg , " + style_str; //add
 
         ret[3] = 90 - this.angle + "deg , " + style_str; //add
@@ -448,12 +456,13 @@ export default {
         this.preview_color = gradien;
       }
     },
-    clickChangeColor: function(e) {
+    clickChangeColor(e) {
       if (this.currentStop == null) {
         return;
       }
-      var panelOffset = this.$el.querySelector(".gradientPicker_panel")
-        .offsetLeft;
+      var panelOffset = this.$el
+        .querySelector(".gradientPicker_panel")
+        .getBoundingClientRect();
       var x = Math.round((e.x - parseInt(panelOffset.left)) * 2);
       var y = Math.round((e.y - parseInt(panelOffset.top)) * 2);
 
@@ -462,10 +471,12 @@ export default {
       var color = this.getPixelColor(panelCanvas, x, y).rgba;
 
       if (color != "rgba(0,0,0,0)") {
+        this.currentStop.color = color;
         this.pickerColor = color;
+        this.apply_style();
       }
     },
-    getPixelColor: function(canvas, x, y) {
+    getPixelColor(canvas, x, y) {
       var thisContext = canvas.getContext("2d");
       var imageData = thisContext.getImageData(x, y, 1, 1);
       // 获取该点像素数据
@@ -494,20 +505,19 @@ export default {
         a: a
       };
     },
-    fixE: function(e) {
+    fixE(e) {
       if (typeof e == "undefined") e = window.event;
       if (typeof e.layerX == "undefined") e.layerX = e.offsetX;
       if (typeof e.layerY == "undefined") e.layerY = e.offsetY;
       return e;
     },
 
-    showColorSelect: function() {
+    showColorSelect() {
       // $(this.$el)
       //   .find(".gradientPicker-color-selector")
       //   .spectrum("show");
     },
-    currentEditorAndMove: function(item, e) {
-      
+    currentEditorAndMove(item, e) {
       this.registEvent();
       console.log("object");
       this.currentStop = item;
@@ -639,10 +649,10 @@ export default {
       this.rand_pos.push(pos);
       return pos;
     },
-    calPosition: function(offset) {
+    calPosition(offset) {
       return offset * (this.sliderWidth - 12) + "px";
     },
-    changeOffset: function() {
+    changeOffset() {
       this.apply_style();
     }
   }
@@ -730,7 +740,6 @@ export default {
   /* background: #eee; */
   height: 17px;
   /* border: 1px solid #eee; */
-  cursor: pointer;
 }
 .gradientPicker_slider {
   position: absolute;
@@ -741,6 +750,7 @@ export default {
   width: 10px;
   height: 10px;
   background: red;
+  cursor: pointer;
   /* border: 1px solid #d0d0d0; */
   display: inline-block;
 }

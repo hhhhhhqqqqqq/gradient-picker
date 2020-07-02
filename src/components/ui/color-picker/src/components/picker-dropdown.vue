@@ -120,7 +120,7 @@ export default {
 </script>
 <style>
 .ms-color-picker__panel {
-  position: absolute;
+  position: fixed;
   z-index: 1003;
   padding: 6px;
   box-sizing: content-box;

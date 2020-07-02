@@ -1,35 +1,49 @@
 <template>
   <div id="app">
-    <MsGradientPicker class="p" @change="change" v-model="color"></MsGradientPicker>
+    <MsGradientPicker
+      class="p"
+      @change="change"
+      :singer-predefine="singerPredefine"
+      :gradient-predefine="gradientPredefine"
+      type=""
+      :value="color"
+    ></MsGradientPicker>
   </div>
 </template>
 
 <script>
 import MsGradientPicker from "./components/MsGradientPicker";
-
+import { DefaultColor } from './utils/utils'
 export default {
   name: "App",
   components: {
     MsGradientPicker
   },
-  methods:{
-    change(){}
-  },
-  data(){
-    return {
-      color:""
+  methods: {
+    change(option) {
+      console.log("option", option);
     }
   },
-  watch:{
-    color(){
-      console.log('this.color', this.color)
+  data() {
+    return {
+      color: "",
+      singerPredefine: [
+    
+      ],
+      gradientPredefine: DefaultColor
+    };
+  },
+  watch: {
+    color() {
+      console.log("this.color", this.color);
     }
   }
 };
 </script>
 
 <style>
-html,body {
+html,
+body {
   height: 100%;
   width: 100%;
 }
@@ -45,5 +59,7 @@ html,body {
 }
 .p {
   position: absolute !important;
+  bottom: 0;
+  right: 200px;
 }
 </style>

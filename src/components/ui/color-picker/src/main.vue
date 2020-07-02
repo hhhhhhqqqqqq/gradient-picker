@@ -27,6 +27,7 @@
       v-if="showPicker"
       @pick="confirmValue"
       @clear="clearValue"
+      :style="{'left':popperLeft + 'px','top':popperTop + 'px'}"
       :color="color"
       :show-alpha="showAlpha"
       :predefine="predefine"
@@ -38,9 +39,9 @@
 import Color from "./color";
 import PickerDropdown from "./components/picker-dropdown.vue";
 import Clickoutside from "../../../../utils/clickoutside";
-
+import { getPopperPosition } from "../../../../utils/utils";
 export default {
-  name: "ElColorPicker",
+  name: "ColorPicker",
 
   props: {
     value: String,
@@ -51,16 +52,6 @@ export default {
     popperClass: String,
     predefine: Array
   },
-
-  // inject: {
-  //   elForm: {
-  //     default: ""
-  //   },
-  //   elFormItem: {
-  //     default: ""
-  //   }
-  // },
-
   directives: { Clickoutside },
 
   computed: {
@@ -72,16 +63,12 @@ export default {
       return this.displayedRgb(this.color, this.showAlpha);
     },
 
-    // _elFormItemSize() {
-    //   return (this.elFormItem || {}).elFormItemSize;
-    // },
-
     colorSize() {
       return this.size;
     },
 
     colorDisabled() {
-      return this.disabled ;
+      return this.disabled;
     }
   },
 
@@ -114,16 +101,24 @@ export default {
       if (val !== currentValueColorRgb) {
         this.$emit("active-change", val);
       }
-    },
-    showPicker(n){
-      console.log('n :>> ', n);
     }
   },
 
   methods: {
+    show() {},
+
     handleTrigger() {
+      debugger;
       if (this.colorDisabled) return;
       this.showPicker = !this.showPicker;
+      if (this.showPicker) {
+        this.$nextTick(() => {
+          var el = document.querySelector(".ms-color-picker");
+          var k = getPopperPosition(el, { width: 314, height: 282 });
+          this.popperTop = k.top;
+          this.popperLeft = k.left;
+        });
+      }
     },
     confirmValue() {
       this.$emit("input", this.color.value);
@@ -136,9 +131,6 @@ export default {
       this.showPanelColor = false;
       this.showPicker = false;
       this.resetColor();
-    },
-    showPanel(){
-      this.showPicker = true;
     },
     hide() {
       this.showPicker = false;
@@ -170,7 +162,6 @@ export default {
     if (value) {
       this.color.fromString(value);
     }
-    // this.popperElm = this.$refs.dropdown.$el;
   },
 
   data() {
@@ -181,7 +172,9 @@ export default {
     return {
       color,
       showPicker: false,
-      showPanelColor: false
+      showPanelColor: false,
+      popperLeft: 0,
+      popperTop: 0
     };
   },
 
@@ -216,7 +209,7 @@ export default {
   position: relative;
   display: block;
   box-sizing: border-box;
-  border: 1px solid #999;
+  /* border: 1px solid #999; */
   border-radius: 2px;
   width: 100%;
   height: 100%;
@@ -229,5 +222,4 @@ export default {
   right: 0;
   bottom: 0;
 }
-
 </style>

@@ -7,22 +7,18 @@
   >
     <div class="gradientPicker-mask" v-show="disabled"></div>
     <div class="gradientPicker" @click.stop="showPanel">
-      <!-- <div
-        style="position:absolute;z-index:2;top: 50%;left: 50%;margin-left: -8px;margin-top: -9px;color: #fff;"
-      >
-        <i class="iconfont icon-jiantou"></i>
-      </div>-->
       <div ref="trigger" class="gradientPicker_trigger"></div>
       <div class="blank-background"></div>
     </div>
     <!---->
-    <transition name="fade">
+    <transition name="ms-zoom-in-top">
       <div
         class="pickColorPanel"
+        ref="pickColorPanel"
         :style="{'left':popperLeft + 'px','top':popperTop + 'px'}"
         v-show="isShowPanel"
       >
-        <div class="ms-tabs__nav">
+        <div class="ms-tabs__nav" v-if="!type">
           <div
             class="ms-tabs__nav-item"
             :class="{'isActive':currentTab === 'singer'}"
@@ -35,19 +31,20 @@
           >渐变色</div>
         </div>
         <div class="ms-tabs__contents">
-          <div v-show="currentTab === 'singer'">
+          <div v-if="!(type && type === 'gradient')" v-show="currentTab === 'singer'">
             <MsColorPicker
               ref="singer"
               v-model="pickColor"
               :show-alpha="showAlpha"
-              :predefine="predefine"
+              :predefine="singerPredefine"
               @change="change"
             ></MsColorPicker>
           </div>
-          <div v-show="currentTab === 'gradient'">
+          <div v-if="!(type && type === 'singer')" v-show="currentTab === 'gradient'">
             <MsGradientPickerPanel
               ref="gradient"
-              @mouseover="hideTooltip"
+              :predefine="gradientPredefine"
+              :singerPredefine="singerPredefine"
               :style="{top:showPanelTop +'px', left:showPanelLeft +'px'}"
             ></MsGradientPickerPanel>
           </div>
@@ -75,7 +72,23 @@ export default {
   },
   props: {
     value: "",
-    colorFormat: ""
+    colorFormat: "",
+    type: {
+      type: String,
+      default: ""
+    },
+    singerPredefine: {
+      type: Array,
+      default: () => []
+    },
+    gradientPredefine: {
+      type: Array,
+      default: () => []
+    },
+    showAlpha:{
+      type:Boolean,
+      default: true
+    }
   },
   data() {
     return {
@@ -87,27 +100,13 @@ export default {
       isShowPanel: false,
       showPanelTop: 100,
       showPanelLeft: 100,
-      pickColor: "#000",
-      showAlpha: true,
-      currentTab: "singer",
-      predefine: [
-        "#ccc",
-        "#f0f",
-        "#d0e0e3",
-        "#b4a7d6",
-        "#6fa8dc",
-        "#f1c232",
-        "#674ea7",
-        "#0b5394",
-        "#7f6000",
-        "#4c1130"
-      ],
+      pickColor: "rgba(255, 0, 0, 1)",
+      currentTab: this.type ? this.type : "singer",
       popperTop: 0,
       popperLeft: 0
     };
   },
   directives: { Clickoutside },
-  mounted() {},
   methods: {
     showPanel() {
       if (this.isShowPanel) {
@@ -115,13 +114,26 @@ export default {
       }
       this.isShowPanel = true;
       this.$nextTick(() => {
+        console.log('object', this.$refs.pickColorPanel.getBoundingClientRect())
         var el = document.querySelector(".gradientPickerC");
-        var k = getPopperPosition(el, { width: 333, height: 360 });
+        var k = getPopperPosition(el, {
+          width: 334,
+          height: this.getHeight()
+        });
         this.popperTop = k.top;
         this.popperLeft = k.left;
       });
     },
-    hideTooltip() {},
+    getHeight(){
+      if(this.type === 'singer'){
+        if(this.singerPredefine.length > 0) return 296
+        return 296- 28
+      }else if(this.type === 'gradient'){
+        if(this.gradientPredefine.length > 0) return 310
+        return 310 -28
+      }
+      return 360
+    },
     hide() {
       this.isShowPanel = false;
     },
@@ -139,17 +151,22 @@ export default {
         color = this.$refs.singer.confirm();
       }
       if (color instanceof Object) {
-        let back = color.background;
-        let background = back.map(item => {
-          return { background: item };
-        });
-        this.$refs.trigger.style.background = background;
+        let back = color.background[0];
+        // let background = back.map(item => {
+        //   return { background: item };
+        // });
+        this.$refs.trigger.style.background = back;
       } else {
         this.$refs.trigger.style.background = color;
       }
-      console.log(color);
+      this.hide();
+      this.$emit("change", color);
     },
-    clear() {}
+    clear() {
+      this.$refs.trigger.style.background = "";
+      this.hide();
+      this.$emit("change", null);
+    }
   }
 };
 </script>
@@ -272,5 +289,18 @@ export default {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+}
+.ms-zoom-in-top-enter-active,
+.ms-zoom-in-top-leave-active {
+  opacity: 1;
+  transform: scaleY(1);
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  transform-origin: center top;
+}
+.ms-zoom-in-top-enter,
+.ms-zoom-in-top-leave-active {
+  opacity: 0;
+  transform: scaleY(0);
 }
 </style>

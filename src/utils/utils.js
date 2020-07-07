@@ -172,7 +172,7 @@ export const getPopperPosition = function (el, popper) {
   if (!el) return {};
   let elWidth = el.offsetWidth,
     elHeight = el.offsetHeight;
-  let rTop = 0, rLeft = 0;
+  let rTop, rLeft, rBottom;
   let Bounding = el.getBoundingClientRect();
   let { left, top, bottom, right } = Bounding;
   let screenWidth = document.body.clientWidth,
@@ -180,7 +180,7 @@ export const getPopperPosition = function (el, popper) {
 
   /**
    * 1. 默认在下
-   * 2. 下不够 在上
+   * 2. 下不够 在 左右
    * 3. 上下都不够在中
    */
   var centerHeight = (popper.height - elHeight) / 2;
@@ -193,7 +193,8 @@ export const getPopperPosition = function (el, popper) {
   }
   // 在指定元素的上面
   else if (top > popper.height) {
-    rTop = top - popper.height;
+    rBottom = screenHeight - bottom + elHeight;
+    // rTop = top - popper.height;
   }
   // 在指定元素的中间
   else {
@@ -225,8 +226,9 @@ export const getPopperPosition = function (el, popper) {
   }
 
   return {
-    top: Math.ceil(rTop),
-    left: Math.ceil(rLeft)
+    top: rTop == null ? '' : Math.ceil(rTop),
+    left: rLeft == null ? '' : Math.ceil(rLeft),
+    bottom: rBottom == null ? '' : Math.ceil(rBottom)
   };
 };
 

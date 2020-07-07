@@ -27,7 +27,7 @@
       v-if="showPicker"
       @pick="confirmValue"
       @clear="clearValue"
-      :style="{'left':popperLeft + 'px','top':popperTop + 'px'}"
+      :style="{'left':popperLeft + 'px','top':popperTop + 'px','bottom':popperBottom + 'px'}"
       :color="color"
       :show-alpha="showAlpha"
       :predefine="predefine"
@@ -108,7 +108,6 @@ export default {
     show() {},
 
     handleTrigger() {
-      debugger;
       if (this.colorDisabled) return;
       this.showPicker = !this.showPicker;
       if (this.showPicker) {
@@ -117,6 +116,7 @@ export default {
           var k = getPopperPosition(el, { width: 314, height: 282 });
           this.popperTop = k.top;
           this.popperLeft = k.left;
+          this.popperBottom = k.bottom;
         });
       }
     },
@@ -173,8 +173,9 @@ export default {
       color,
       showPicker: false,
       showPanelColor: false,
-      popperLeft: 0,
-      popperTop: 0
+      popperLeft: '',
+      popperTop: '',
+      popperBottom:'',
     };
   },
 

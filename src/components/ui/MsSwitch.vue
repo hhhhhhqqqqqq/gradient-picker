@@ -1,7 +1,7 @@
 <template>
   <div
     class="ms-switch"
-    :class="{ 'is-disabled': switchDisabled, 'is-checked': checked }"
+    :class="{'is-checked': checked }"
     role="switch"
     :aria-checked="checked"
     :aria-disabled="switchDisabled"
@@ -18,14 +18,14 @@
       @keydown.enter="switchValue"
     />
     <span
-      :class="['ms-switch__label', 'ms-switch__label--left', !checked ? 'is-active' : '']"
+      class="ms-switch__label"
       v-if="inactiveText"
     >
       <span :aria-hidden="checked">{{ inactiveText }}</span>
     </span>
     <span class="ms-switch__core" ref="core" :style="{ 'width': coreWidth + 'px' }"></span>
     <span
-      :class="['ms-switch__label', 'ms-switch__label--right', checked ? 'is-active' : '']"
+      class="ms-switch__label"
       v-if="activeText"
     >
       <span :aria-hidden="!checked">{{ activeText }}</span>
@@ -190,5 +190,8 @@ export default {
 .ms-switch.is-checked .ms-switch__core:after {
     left: 100%;
     margin-left: -17px;
+}
+.ms-switch__label{
+  margin-left: 8px;
 }
 </style>

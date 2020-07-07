@@ -41,29 +41,30 @@ export default {
     };
   },
   watch: {
+    value(val) {
+      if (!val) {
+      } else if (val && val !== this.color.value) {
+        this.color.fromString(val);
+      }
+    },
     color: {
-      handler(newVal) {
-        this.$emit("change", newVal.value);
-      },
-      deep: true
+      deep: true,
+      handler() {
+        this.showPanelColor = true;
+      }
     }
   },
-  methods: {
-    confirm(){
-      return this.color.value
+  mounted() {
+    const value = this.value;
+    if (value) {
+      this.color.fromString(value);
     }
-    // confirmValue() {
-    //   this.$emit("input", this.color.value);
-    //   this.$emit("change", this.color.value);
-    //   this.showPicker = false;
-    // },
-    // clearValue() {
-    //   this.$emit("input", null);
-    //   this.$emit("change", null);
-    //   this.showPanelColor = false;
-    //   this.showPicker = false;
-    //   this.resetColor();
-    // }
+    console.log('this.color', this.color)
+  },
+  methods: {
+    confirm() {
+      return this.color.value;
+    }
   }
 };
 </script>

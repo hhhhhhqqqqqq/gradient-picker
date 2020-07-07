@@ -15,7 +15,7 @@
       <div
         class="pickColorPanel"
         ref="pickColorPanel"
-        :style="{'left':popperLeft + 'px','top':popperTop + 'px'}"
+        :style="{'left':popperLeft + 'px','top':popperTop + 'px','bottom':popperBottom + 'px'}"
         v-show="isShowPanel"
       >
         <div class="ms-tabs__nav" v-if="!type">
@@ -42,10 +42,10 @@
           </div>
           <div v-if="!(type && type === 'singer')" v-show="currentTab === 'gradient'">
             <MsGradientPickerPanel
+              :value="gradientColor"
               ref="gradient"
               :predefine="gradientPredefine"
               :singerPredefine="singerPredefine"
-              :style="{top:showPanelTop +'px', left:showPanelLeft +'px'}"
             ></MsGradientPickerPanel>
           </div>
         </div>
@@ -85,8 +85,8 @@ export default {
       type: Array,
       default: () => []
     },
-    showAlpha:{
-      type:Boolean,
+    showAlpha: {
+      type: Boolean,
       default: true
     }
   },
@@ -100,13 +100,32 @@ export default {
       isShowPanel: false,
       showPanelTop: 100,
       showPanelLeft: 100,
-      pickColor: "rgba(255, 0, 0, 1)",
+      pickColor: "",
+      gradientColor:null,
       currentTab: this.type ? this.type : "singer",
-      popperTop: 0,
-      popperLeft: 0
+      popperTop: "",
+      popperLeft: "",
+      popperBottom: ""
     };
   },
+  watch: {
+    value: {
+      handler(newVal, oldVal) {
+        if (typeof newVal === "string") {
+          this.currentTab = 'singer'
+          this.pickColor = newVal;
+        }else{
+          this.currentTab = 'gradient'
+          this.gradientColor = newVal
+        }
+      },
+      immediate: true
+    }
+  },
   directives: { Clickoutside },
+  mounted() {
+    this.setTriggerColor(this.value);
+  },
   methods: {
     showPanel() {
       if (this.isShowPanel) {
@@ -114,7 +133,6 @@ export default {
       }
       this.isShowPanel = true;
       this.$nextTick(() => {
-        console.log('object', this.$refs.pickColorPanel.getBoundingClientRect())
         var el = document.querySelector(".gradientPickerC");
         var k = getPopperPosition(el, {
           width: 334,
@@ -122,17 +140,18 @@ export default {
         });
         this.popperTop = k.top;
         this.popperLeft = k.left;
+        this.popperBottom = k.bottom;
       });
     },
-    getHeight(){
-      if(this.type === 'singer'){
-        if(this.singerPredefine.length > 0) return 296
-        return 296- 28
-      }else if(this.type === 'gradient'){
-        if(this.gradientPredefine.length > 0) return 310
-        return 310 -28
+    getHeight() {
+      if (this.type === "singer") {
+        if (this.singerPredefine.length > 0) return 296;
+        return 296 - 28;
+      } else if (this.type === "gradient") {
+        if (this.gradientPredefine.length > 0) return 310;
+        return 310 - 28;
       }
-      return 360
+      return 360;
     },
     hide() {
       this.isShowPanel = false;
@@ -150,15 +169,7 @@ export default {
       } else {
         color = this.$refs.singer.confirm();
       }
-      if (color instanceof Object) {
-        let back = color.background[0];
-        // let background = back.map(item => {
-        //   return { background: item };
-        // });
-        this.$refs.trigger.style.background = back;
-      } else {
-        this.$refs.trigger.style.background = color;
-      }
+      this.setTriggerColor(color);
       this.hide();
       this.$emit("change", color);
     },
@@ -166,6 +177,14 @@ export default {
       this.$refs.trigger.style.background = "";
       this.hide();
       this.$emit("change", null);
+    },
+    setTriggerColor(color) {
+      if (color instanceof Object) {
+        let back = color.background[0];
+        this.$refs.trigger.style.background = back;
+      } else {
+        this.$refs.trigger.style.background = color;
+      }
     }
   }
 };

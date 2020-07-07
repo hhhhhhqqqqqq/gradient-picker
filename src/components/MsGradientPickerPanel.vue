@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="panel-container">
     <!-- 操作按钮 -->
     <div class="operation">
       <ms-radio-group v-model="gradientType" size="mini">
@@ -27,7 +27,7 @@
             v-for="(item, index) in colorStopList"
             :key="index"
             class="gradientPicker_slider"
-            :style="{left:calPosition(item.offset), borderColor: item.color, boxShadow:item === currentStop ? `0 0 2px ${item.color}`:'none'}"
+            :style="{left:calPosition(item.offset), borderColor: item.color, boxShadow:item === currentStop ? `0 0 4px #000`:'none'}"
             @mousedown.stop="currentEditorAndMove(item,$event)"
             @dblclick="showColorSelect"
             @click.stop
@@ -161,6 +161,10 @@ export default {
     singerPredefine: {
       type: Array,
       default: () => []
+    },
+    value: {
+      type: Object,
+      default: () => ({})
     }
     // sliderWidth:{  // 滑块的长度
     //   type: Number,
@@ -181,7 +185,6 @@ export default {
       sliderWidth: 310,
       rand_RGB: [],
       rand_pos: [],
-
       colorStopList: [],
       currentStop: {},
       pickerColor: "",
@@ -207,9 +210,15 @@ export default {
     // }
   },
   mounted() {
-    var width = this.$refs.picker_con.offsetWidth;
-    if (width) {
-      this.sliderWidth = width;
+    // var width = this.$refs.picker_con.offsetWidth;
+    // if (width) {
+    //   this.sliderWidth = width;
+    // }
+    if (this.value.colorStops) {
+      this.colorStopList = this.value.colorStops;
+      this.currentStop = this.colorStopList[0];
+      this.pickerColor = this.currentStop.color;
+      this.apply_style();
     }
   },
   methods: {
@@ -287,7 +296,7 @@ export default {
         item.offset =
           Math.round(
             ((e.clientX - parseInt(panelPosition.left)) * 1000) /
-              (this.sliderWidth - 12)
+              (this.sliderWidth - 10)
           ) / 1000;
       }
       this.colorStopList.push(item);
@@ -525,9 +534,8 @@ export default {
 
       var obj = e.currentTarget;
       this.currentTarget = obj;
-
       var { slider_panel } = this.$refs;
-
+      let currentPosX = this.currentTarget.getBoundingClientRect().x;
       // 定义可拖动的最大值
       var maxX = slider_panel.offsetWidth + 10 || 320,
         minX = 0;
@@ -546,7 +554,7 @@ export default {
       // 计算出可拖动的范围
       var minMouseX, maxMouseX;
 
-      if (minX != null) minMouseX = e.clientX - x + minX;
+      if (minX != null) minMouseX = currentPosX - x + minX;
       if (maxX != null) maxMouseX = minMouseX + maxX - minX;
 
       // 保存开始拖动时的鼠标位置，和最小，最大的拖动距离
@@ -572,7 +580,6 @@ export default {
     handleDrag(e) {
       // 禁止添加新的触点
       this.moveStopClick = true;
-
       var { lastMouseX, minMouseX, maxMouseX } = this.dragStartPosition;
 
       var ex = e.clientX;
@@ -581,7 +588,11 @@ export default {
       ex = Math.min(ex, maxMouseX);
 
       this.currentStop.offset += (ex - lastMouseX) / this.sliderWidth;
-
+      if (this.currentStop.offset < 0) {
+        this.currentStop.offset = 0;
+      } else if (this.currentStop.offset > 1) {
+        this.currentStop.offset = 1;
+      }
       this.dragStartPosition.lastMouseX = ex;
       this.apply_style();
     },
@@ -650,7 +661,7 @@ export default {
       return pos;
     },
     calPosition(offset) {
-      return offset * (this.sliderWidth - 12) + "px";
+      return offset * (this.sliderWidth - 10) + "px";
     },
     changeOffset() {
       this.apply_style();
@@ -737,7 +748,7 @@ export default {
 }
 .gradientPicker_start_sliders {
   width: 100%;
-  /* background: #eee; */
+  background: #eee;
   height: 17px;
   /* border: 1px solid #eee; */
 }

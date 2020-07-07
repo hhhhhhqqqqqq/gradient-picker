@@ -67,11 +67,6 @@ export default {
       newPosition: null
     };
   },
-  watch: {
-    value(n) {
-      console.log("n :>> ", n);
-    }
-  },
   computed: {
     barSize() {
       return `${(100 * (this.value - this.min)) / (this.max - this.min)}%`;

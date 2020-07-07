@@ -36,14 +36,11 @@ import SvPanel from "./sv-panel";
 import HueSlider from "./hue-slider";
 import AlphaSlider from "./alpha-slider";
 import Predefine from "./predefine";
-// import Popper from "element-ui/src/utils/vue-popper";
 import MsInput from '../../../MsInput';
 import MsButton from '../../../MsButton';
 
 export default {
   name: "ms-color-picker-dropdown",
-
-  // mixins: [Popper],
 
   components: {
     SvPanel,
@@ -69,7 +66,6 @@ export default {
   data() {
     return {
       customInput: "",
-      // DPopper:Popper,
       showPopper:true
     };
   },
